@@ -4,232 +4,63 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Thực đơn hôm nay | Phương Nhung Healthy Bites</title>
-<meta name="description" content="Thực đơn hôm nay tại Phương Nhung Healthy Bites. Địa chỉ: 17 phố Muối, Tam Thanh, Lạng Sơn." />
-<link rel="icon" href="images/favicon.png" type="image/png">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<!-- QR lib -->
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-<style>
-/* bảng danh sách */
-.menu-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-.menu-table th, .menu-table td {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-  text-align: left;
-}
-.menu-table tr:hover {
-  background: #f9f9f9;
-  cursor: pointer;
-}
-/* ảnh preview */
-.preview-img {
-  position: absolute;
-  display: none;
-  width: 180px;
-  border-radius: 8px;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
-  z-index: 2000;
-}
-</style>
 </head>
 <body>
-  <!-- header -->
-  <header class="site-header">
-    <div class="site-container">
-      <a class="brand-link" href="index.html"><div class="brand-circle">PN</div><div class="brand-name">Phương Nhung Healthy Bites<small>Thực đơn</small></div></a>
-      <nav class="site-nav" aria-label="Main navigation">
-        <a class="nav-link" href="index.html">Trang chủ</a>
-        <a class="nav-link active" href="menu.html">Thực đơn</a>
-        <a class="nav-link" href="about.html">Giới thiệu</a>
-        <a class="nav-link" href="contact.html">Liên hệ</a>
-      </nav>
-      <div class="nav-actions">
-        <a href="tel:0902032188" class="btn-cta">📞 Gọi ngay</a>
-        <button id="mobileToggle" class="mobile-toggle" aria-label="Mở menu">☰</button>
-      </div>
-    </div>
-  </header>
+<header class="site-header">
+  <div class="site-container">
+    <a class="brand-link" href="index.html"><div class="brand-circle">PN</div><div class="brand-name">Phương Nhung Healthy Bites<small>Thực đơn</small></div></a>
+    <nav class="site-nav">
+      <a class="nav-link" href="index.html">Trang chủ</a>
+      <a class="nav-link active" href="menu.html">Thực đơn</a>
+      <a class="nav-link" href="about.html">Giới thiệu</a>
+      <a class="nav-link" href="contact.html">Liên hệ</a>
+    </nav>
+  </div>
+</header>
 
-  <main class="container">
-    <div class="card">
-      <h1>🍱 Thực đơn hôm nay</h1>
-      <p class="muted">Cập nhật: <span id="menuDate"></span></p>
+<main class="container">
+  <div class="card">
+    <h1>🍱 Thực đơn hôm nay</h1>
+    <p class="muted">Cập nhật: <span id="menuDate"></span></p>
+    <div id="menuArea"></div>
+    <p><strong>Tổng số món:</strong> <span id="totalCount">0</span></p>
+  </div>
+</main>
 
-      <div id="menuArea"></div>
+<footer class="site-footer">
+  <div class="site-container">
+    <p>© 2025 Phương Nhung Healthy Bites</p>
+  </div>
+</footer>
 
-      <!-- bảng danh sách món -->
-      <div class="container-card" style="margin-top:20px;">
-        <h3>📋 Danh sách món hôm nay</h3>
-        <table class="menu-table">
-          <thead>
-            <tr><th>#</th><th>Món ăn</th></tr>
-          </thead>
-          <tbody id="listSummary"></tbody>
-        </table>
-      </div>
-
-      <div class="container-card" style="margin-top:18px;">
-        <strong>Tổng số món hôm nay:</strong> <span id="totalCount">0</span>
-        <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
-          <div id="qrcodeBox"></div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button id="shareFan" class="small-btn primary">🔗 Fanpage</button>
-            <button id="shareZalo" class="small-btn outline">💬 Zalo</button>
-            <button id="copyLink" class="small-btn outline">📋 Sao chép link Fanpage</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <footer class="site-footer">
-    <div class="site-container">
-      <p>© 2025 Phương Nhung Healthy Bites • 17 phố Muối, Tam Thanh, Lạng Sơn • Hotline: 0902032188</p>
-    </div>
-  </footer>
-
-  <!-- floating -->
-  <a class="floating-btn zalo" href="https://zalo.me/0902032188" title="Chat Zalo" target="_blank">💬</a>
-  <a class="floating-btn call" href="tel:0902032188" title="Gọi ngay">📞</a>
-  <a class="floating-btn back" href="#top" title="Về đầu trang">⬆</a>
-
-<script src="script.js"></script>
 <script>
-/* ===== Mapping tên món -> ảnh (ban đầu tất cả fallback về placeholder) ===== */
-const DISH_IMAGES = {
-  "Gà xào nấm": "images/placeholder.png",
-  "Cá thu sốt cà chua": "images/placeholder.png",
-  "Cơm lứt + hạt dinh dưỡng": "images/placeholder.png"
-};
+const RAW_URL = "https://raw.githubusercontent.com/taomenonline/phuongnhung-healthy-bites/main/todayMenu.json";
 
-/* Render menu theo nhóm như cũ */
-const MENU_GROUPS_PUBLIC = {
-  "Gà": ["Ức gà luộc","Đùi gà xào sả ớt","Gà nướng (đùi + má đùi)","Gà luộc (đùi + má đùi)","Ức gà xào ớt xanh đỏ","Gà xào nấm","Gà khô gừng nghệ","Gà xào dứa","Ức gà quấn lá lốt","Mọc gà nấm hương"],
-  "Bò": ["Bò xào nấm đùi gà","Bò xào nấm hải sản","Bò xào hoa thiên lý","Bò xào giá","Bò kho hoa quả","Bò xào nấm hương tươi"],
-  "Tôm": ["Tôm hấp","Tôm rang ba chỉ","Tôm rim"],
-  "Cá": ["Cá hấp","Cá chiên","Cá nướng","Cá sông chao giòn","Cá thu sốt cà chua","Cá thu om tiêu","Cá basa kho tiêu","Cá kho dưa"],
-  "Thịt Lợn": ["Thịt băm rang","Thịt ba chỉ rang tôm","Thịt lợn kho dừa","Thịt lợn om mắc mật","Thịt lợn luộc","Chả sen","Chả lá lốt"],
-  "Rau": ["Súp lơ luộc","Bí xanh luộc","Đỗ cô ve luộc","Bắp cải luộc","Cà rốt luộc","Củ dền luộc","Xu hào luộc","Cải chíp luộc","Măng xào","Nấm đùi gà om","Nấm bao tử","Mướp đắng xào","Củ cải xào","Mướp đắng xào trứng","Mướp hương luộc","Mướp hương xào giá đỗ"],
-  "Đậu": ["Đậu cà chua","Đậu tẩm hành","Đậu sống"],
-  "Trứng": ["Trứng luộc","Trứng rán cuốn rong biển","Trứng rán hành","Trứng rán"],
-  "Cơm": ["Cơm trắng gạo Nhật","Cơm lứt tổng hợp","Cơm lứt + hạt dinh dưỡng"],
-  "Món Chay": ["Sườn non chay","Gà chay","Bò chay","Tảo xoắn","Lạc rang","Muối vừng"]
-};
-
-function renderPublicMenu(){
-  const menuArea = document.getElementById('menuArea');
-  const saved = window.__MENU_DATA__ || [];
-  const todayStr = new Date().toLocaleDateString();
-  document.getElementById('menuDate').textContent = todayStr;
-  menuArea.innerHTML = '';
-
-  const grouped = {};
-  Object.keys(MENU_GROUPS_PUBLIC).forEach(k => grouped[k]=[]);
-  grouped['Khác'] = [];
-
-  saved.forEach(item=>{
-    let placed=false;
-    for(const [g, arr] of Object.entries(MENU_GROUPS_PUBLIC)){
-      if(arr.includes(item)){ grouped[g].push(item); placed=true; break; }
-    }
-    if(!placed) grouped['Khác'].push(item);
-  });
-
-  let total=0;
-  for(const [g,arr] of Object.entries(grouped)){
-    if(arr.length===0) continue;
-    const box = document.createElement('div');
-    box.className = 'menu-category container-card';
-    const h = document.createElement('h3'); h.textContent = `${g} (${arr.length})`;
-    box.appendChild(h);
-    const grid = document.createElement('div'); grid.className = 'cards-grid';
-    arr.forEach(it=>{
-      total++;
-      const card = document.createElement('article'); card.className='dish-card';
-      const imgSrc = DISH_IMAGES[it] || 'images/placeholder.png';
-      card.innerHTML = `<img src="${imgSrc}" alt="${it}"><div class="dish-body"><h4>${it}</h4><p class="muted">Healthy & cân bằng dinh dưỡng</p></div>`;
-      grid.appendChild(card);
-    });
-    box.appendChild(grid); menuArea.appendChild(box);
-  }
-  document.getElementById('totalCount').textContent = total;
-  const qBox = document.getElementById('qrcodeBox'); qBox.innerHTML='';
-  new QRCode(qBox, { text: window.location.href, width: 120, height: 120 });
-}
-
-/* render bảng danh sách */
-function renderSummaryList(items){
-  const listEl = document.getElementById('listSummary');
-  if(!listEl) return;
-  listEl.innerHTML = '';
-  items.forEach((item, idx) => {
-    const tr = document.createElement('tr');
-    const tdIdx = document.createElement('td'); tdIdx.textContent = idx+1;
-    const tdName = document.createElement('td'); tdName.textContent = item;
-    tdName.addEventListener('mouseenter', (e) => showPreview(e, item));
-    tdName.addEventListener('mousemove', (e) => movePreview(e));
-    tdName.addEventListener('mouseleave', hidePreview);
-    tr.appendChild(tdIdx); tr.appendChild(tdName); listEl.appendChild(tr);
-  });
-}
-
-/* tooltip preview image */
-const preview = document.createElement('img');
-preview.className = 'preview-img';
-preview.src = 'images/placeholder.png';
-document.body.appendChild(preview);
-function showPreview(e, item){
-  preview.style.display = 'block';
-  preview.alt = item;
-  preview.src = DISH_IMAGES[item] || 'images/placeholder.png';
-}
-function movePreview(e){
-  preview.style.left = (e.pageX + 18) + 'px';
-  preview.style.top = (e.pageY - 24) + 'px';
-}
-function hidePreview(){ preview.style.display = 'none'; }
-
-/* Try to fetch todayMenu.json from root — if ok, use it; else fallback to localStorage or demo */
-async function loadAndRenderMenu(){
-  const dateEl = document.getElementById('menuDate');
-  dateEl.textContent = new Date().toLocaleDateString();
-  let saved = null;
+async function renderMenu(){
   try {
-    const res = await fetch('todayMenu.json', {cache: "no-store"});
-    if(res.ok){
-      saved = await res.json();
-    } else {
-      saved = JSON.parse(localStorage.getItem('todayMenu') || '[]');
-    }
-  } catch(e){
-    saved = JSON.parse(localStorage.getItem('todayMenu') || '[]');
-  }
+    const res = await fetch(RAW_URL+"?t="+Date.now());
+    const data = await res.json();
+    const menuArea = document.getElementById('menuArea');
+    const todayStr = new Date().toLocaleDateString();
+    document.getElementById('menuDate').textContent = todayStr;
 
-  if(Array.isArray(saved) && saved.length > 0){
-    window.__MENU_DATA__ = saved;
-    renderPublicMenu();
-    renderSummaryList(saved);
-  } else {
-    const all = [];
-    Object.values(MENU_GROUPS_PUBLIC).forEach(arr => arr.forEach(it => all.push(it)));
-    window.__MENU_DATA__ = all;
-    renderPublicMenu();
-    renderSummaryList(all);
+    menuArea.innerHTML = '';
+    let total=0;
+    data.forEach((it, idx)=>{
+      total++;
+      const card = document.createElement('div');
+      card.className='dish-card';
+      card.innerHTML = `<div class="dish-body"><h4>${idx+1}. ${it}</h4></div>`;
+      menuArea.appendChild(card);
+    });
+    document.getElementById('totalCount').textContent = total;
+  } catch(e){
+    document.getElementById('menuArea').innerHTML = "<p>❌ Lỗi tải menu</p>";
   }
 }
-
-/* share buttons */
-document.addEventListener('DOMContentLoaded', function(){
-  loadAndRenderMenu();
-  document.getElementById('shareFan').addEventListener('click', function(){ window.open('https://facebook.com/phuongnhunghealthy', '_blank'); });
-  document.getElementById('shareZalo').addEventListener('click', function(){ window.open('https://zalo.me/0902032188', '_blank'); });
-  document.getElementById('copyLink').addEventListener('click', function(){ const url = 'https://facebook.com/phuongnhunghealthy'; navigator.clipboard && navigator.clipboard.writeText(url).then(()=> alert('Đã sao chép link fanpage')); });
-});
+renderMenu();
 </script>
 </body>
 </html>
