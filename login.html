@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Đăng nhập quản trị | Phương Nhung Healthy Bites</title>
+  <link rel="icon" href="images/favicon.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* small overrides for login page */
+    body{display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg,#dff6ea,#e7fff8)}
+    .login-box{width:360px;background:#fff;padding:28px;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,0.08);text-align:center}
+    .brand-circle{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;margin:0 auto 12px;background:var(--green)}
+    .brand-title{font-size:18px;font-weight:700;margin-bottom:6px}
+    .login-box input{width:100%;padding:12px;border-radius:8px;border:1px solid #e6e6e6;margin-bottom:12px}
+    .login-box button{width:100%;padding:12px;border-radius:8px;border:none;background:var(--green);color:#fff;font-weight:700}
+    .note{font-size:13px;color:#666;margin-top:10px}
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <div class="brand-circle">PN</div>
+    <div class="brand-title">Phương Nhung Healthy Bites</div>
+    <p>Đăng nhập quản trị để chọn thực đơn hôm nay</p>
+    <input id="pwd" type="password" placeholder="Mật khẩu quản trị">
+    <button id="btnLogin">Đăng nhập</button>
+    <div class="note">Mật khẩu quản trị: <strong>123123</strong></div>
+    <div id="err" style="color:#c0392b;margin-top:10px;"></div>
+  </div>
+
+<script>
+document.getElementById('btnLogin').addEventListener('click', function(){
+  const val = document.getElementById('pwd').value.trim();
+  if(val === '123123'){
+    localStorage.setItem('adminLogged','1');
+    window.location.href = 'admin.html';
+  } else {
+    document.getElementById('err').textContent = 'Sai mật khẩu. Thử lại.';
+  }
+});
+</script>
+</body>
+</html>

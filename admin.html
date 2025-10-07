@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin - Quản lý Menu | Phương Nhung Healthy Bites</title>
+  <link rel="icon" href="images/favicon.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- QR library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <style>
+    /* Small admin-specific overrides */
+    .admin-header { padding: 18px 0; background: linear-gradient(90deg,var(--green-2),var(--green)); color: #fff; text-align:center; }
+    .admin-header h2{margin:0;font-size:18px}
+    .search-box{margin-bottom:12px}
+    .selected-list ul{list-style:none;padding-left:0;margin:0}
+    .selected-list li{padding:6px 8px;border-bottom:1px solid #f0f0f0}
+    .meta-small{font-size:13px;color:#666;margin-top:8px}
+  </style>
+</head>
+<body>
+  <!-- header -->
+  <header class="site-header">
+    <div class="site-container">
+      <a class="brand-link" href="index.html"><div class="brand-circle">PN</div><div class="brand-name">Phương Nhung Healthy Bites<small>Quản trị</small></div></a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a class="nav-link" href="index.html">Trang chủ</a>
+        <a class="nav-link" href="menu.html">Thực đơn</a>
+        <a class="nav-link" href="about.html">Giới thiệu</a>
+        <a class="nav-link active" href="contact.html">Liên hệ</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="tel:0902032188" class="btn-cta">📞 Gọi ngay</a>
+        <button id="mobileToggle" class="mobile-toggle" aria-label="Mở menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="admin-header">
+      <h2>Quản lý Menu hôm nay — Chọn món để cập nhật cho trang khách</h2>
+    </div>
+
+    <div class="admin-wrap" style="margin-top:18px;">
+      <div class="admin-left">
+        <div class="group-box">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <strong>Danh mục món (mở/đóng)</strong>
+            <div class="meta-small">Nhấn tick để chọn món</div>
+          </div>
+
+          <!-- Groups will be injected here -->
+          <div id="groupsContainer"></div>
+        </div>
+      </div>
+
+      <div class="admin-right">
+        <div class="group-box selected-list">
+          <h3>Món đã chọn hôm nay</h3>
+          <ul id="selectedList"></ul>
+          <p class="meta-small">Tổng: <span id="selectedCount">0</span> món</p>
+
+          <div class="row-actions" style="margin-top:10px">
+            <button class="small-btn primary" id="btnSave">💾 Lưu & Tạo QR</button>
+            <button class="small-btn outline" id="btnClear">🧹 Xóa hết</button>
+          </div>
+
+          <div class="qr-box" id="qrArea" style="margin-top:12px;display:none">
+            <div id="qrcode"></div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="small-btn primary" id="btnCopyLink">📋 Sao chép link</button>
+              <button class="small-btn outline" id="btnShareFB">🔗 Chia sẻ Fanpage</button>
+              <button class="small-btn outline" id="btnShareZalo">💬 Mở Zalo</button>
+              <button class="small-btn outline" id="btnPreview">👀 Xem trước</button>
+            </div>
+            <div class="meta-small" id="qrNote"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+<script>
+/* admin logic embedded - uses localStorage key 'todayMenu' */
+/* first: protect admin page by checking login flag */
+(function(){
+  if(!localStorage.getItem('adminLogged')){
+    window.location.href = 'login.html';
+    return;
+  }
+})();
+
+/* Menu data exactly as Lão Gia cung cấp (66 items, 10 groups) */
+const MENU_GROUPS = {
+  "Gà": [
+    "Ức gà luộc",
+    "Đùi gà xào sả ớt",
+    "Gà nướng (đùi + má đùi)",
+    "Gà luộc (đùi + má đùi)",
+    "Ức gà xào ớt xanh đỏ",
+    "Gà xào nấm",
+    "Gà khô gừng nghệ",
+    "Gà xào dứa",
+    "Ức gà quấn lá lốt",
+    "Mọc gà nấm hương"
+  ],
+  "Bò": [
+    "Bò xào nấm đùi gà",
+    "Bò xào nấm hải sản",
+    "Bò xào hoa thiên lý",
+    "Bò xào giá",
+    "Bò kho hoa quả",
+    "Bò xào nấm hương tươi"
+  ],
+  "Tôm": [
+    "Tôm hấp",
+    "Tôm rang ba chỉ",
+    "Tôm rim"
+  ],
+  "Cá": [
+    "Cá hấp",
+    "Cá chiên",
+    "Cá nướng",
+    "Cá sông chao giòn",
+    "Cá thu sốt cà chua",
+    "Cá thu om tiêu",
+    "Cá basa kho tiêu",
+    "Cá kho dưa"
+  ],
+  "Thịt Lợn": [
+    "Thịt băm rang",
+    "Thịt ba chỉ rang tôm",
+    "Thịt lợn kho dừa",
+    "Thịt lợn om mắc mật",
+    "Thịt lợn luộc",
+    "Chả sen",
+    "Chả lá lốt"
+  ],
+  "Rau": [
+    "Súp lơ luộc",
+    "Bí xanh luộc",
+    "Đỗ cô ve luộc",
+    "Bắp cải luộc",
+    "Cà rốt luộc",
+    "Củ dền luộc",
+    "Xu hào luộc",
+    "Cải chíp luộc",
+    "Măng xào",
+    "Nấm đùi gà om",
+    "Nấm bao tử",
+    "Mướp đắng xào",
+    "Củ cải xào",
+    "Mướp đắng xào trứng",
+    "Mướp hương luộc",
+    "Mướp hương xào giá đỗ"
+  ],
+  "Đậu": [
+    "Đậu cà chua",
+    "Đậu tẩm hành",
+    "Đậu sống"
+  ],
+  "Trứng": [
+    "Trứng luộc",
+    "Trứng rán cuốn rong biển",
+    "Trứng rán hành",
+    "Trứng rán"
+  ],
+  "Cơm": [
+    "Cơm trắng gạo Nhật",
+    "Cơm lứt tổng hợp",
+    "Cơm lứt + hạt dinh dưỡng"
+  ],
+  "Món Chay": [
+    "Sườn non chay",
+    "Gà chay",
+    "Bò chay",
+    "Tảo xoắn",
+    "Lạc rang",
+    "Muối vừng"
+  ]
+};
+
+/* render groups */
+const groupsContainer = document.getElementById('groupsContainer');
+const selectedListEl = document.getElementById('selectedList');
+const selectedCountEl = document.getElementById('selectedCount');
+
+function createGroupElements(){
+  Object.entries(MENU_GROUPS).forEach(([groupName, items])=>{
+    const box = document.createElement('div');
+    box.className = 'group-box';
+    // toggler
+    const header = document.createElement('div');
+    header.style.display='flex';
+    header.style.justifyContent='space-between';
+    header.style.alignItems='center';
+    const title = document.createElement('div');
+    title.className='group-title';
+    title.textContent = `${groupName} (${items.length})`;
+    const btnToggle = document.createElement('button');
+    btnToggle.className='small-btn outline';
+    btnToggle.textContent = 'Mở / Đóng';
+    btnToggle.style.fontSize='13px';
+    header.appendChild(title);
+    header.appendChild(btnToggle);
+    box.appendChild(header);
+
+    const list = document.createElement('div');
+    list.style.marginTop='8px';
+    items.forEach(it=>{
+      const lbl = document.createElement('label');
+      lbl.className='item-label';
+      const inp = document.createElement('input');
+      inp.type='checkbox';
+      inp.value = it;
+      inp.addEventListener('change', updateSelectedFromCheckboxes);
+      const span = document.createElement('span');
+      span.textContent = it;
+      lbl.appendChild(inp);
+      lbl.appendChild(span);
+      list.appendChild(lbl);
+    });
+    btnToggle.addEventListener('click', ()=> {
+      list.style.display = (list.style.display === 'none' || list.style.display === '') ? 'block' : 'none';
+    });
+    box.appendChild(list);
+    groupsContainer.appendChild(box);
+  });
+}
+
+function updateSelectedFromCheckboxes(){
+  const checked = Array.from(document.querySelectorAll('#groupsContainer input[type="checkbox"]:checked')).map(i => i.value);
+  renderSelectedList(checked);
+}
+
+function renderSelectedList(list){
+  selectedListEl.innerHTML = '';
+  list.forEach((item, idx)=>{
+    const li = document.createElement('li');
+    li.textContent = `${idx+1}. ${item}`;
+    selectedListEl.appendChild(li);
+  });
+  selectedCountEl.textContent = list.length;
+}
+
+/* initialize checkboxes from saved todayMenu (if any) */
+function syncCheckboxesWithSaved(){
+  const saved = JSON.parse(localStorage.getItem('todayMenu')||'[]');
+  if(saved.length === 0) return;
+  const inputs = document.querySelectorAll('#groupsContainer input[type="checkbox"]');
+  inputs.forEach(inp => {
+    if(saved.includes(inp.value)) inp.checked = true;
+    else inp.checked = false;
+  });
+  renderSelectedList(saved);
+}
+
+/* Save & create QR */
+document.getElementById('btnSave').addEventListener('click', function(){
+  const checked = Array.from(document.querySelectorAll('#groupsContainer input[type="checkbox"]:checked')).map(i => i.value);
+  localStorage.setItem('todayMenu', JSON.stringify(checked));
+  // show QR area
+  showQRCodeForMenu(checked);
+  alert('Đã lưu menu hôm nay — ' + checked.length + ' món.');
+});
+
+/* clear */
+document.getElementById('btnClear').addEventListener('click', function(){
+  if(!confirm('Xóa hết các chọn?')) return;
+  const inputs = document.querySelectorAll('#groupsContainer input[type="checkbox"]');
+  inputs.forEach(i => i.checked = false);
+  selectedListEl.innerHTML = '';
+  selectedCountEl.textContent = '0';
+  localStorage.removeItem('todayMenu');
+  document.getElementById('qrArea').style.display = 'none';
+});
+
+/* show QR for menu (QR links to menu.html) */
+function showQRCodeForMenu(selected){
+  const qrArea = document.getElementById('qrArea');
+  qrArea.style.display = 'flex';
+  qrArea.style.flexDirection = 'column';
+  qrArea.style.alignItems = 'center';
+  const box = document.getElementById('qrcode');
+  box.innerHTML = '';
+  // create shareable payload: link to menu.html (relative)
+  const url = window.location.origin + window.location.pathname.replace(/\/admin.html$/,'') + '/menu.html';
+  // For local file (when opened as file://) window.location.origin may be "null", so use relative
+  const shareUrl = 'menu.html';
+  new QRCode(box, { text: shareUrl, width: 140, height: 140 });
+  document.getElementById('qrNote').textContent = `Menu hôm nay (${(new Date()).toLocaleDateString()}) — quét QR để xem hoặc nhấn "Xem trước".`;
+}
+
+/* copy link */
+document.getElementById('btnCopyLink').addEventListener('click', function(){
+  const shareUrl = window.location.href.replace(/admin\.html.*$/,'') + 'menu.html';
+  navigator.clipboard && navigator.clipboard.writeText(shareUrl).then(()=> {
+    alert('Đã sao chép link menu: ' + shareUrl);
+  }).catch(()=> {
+    prompt('Sao chép link thủ công:', shareUrl);
+  });
+});
+
+/* share to fanpage */
+document.getElementById('btnShareFB').addEventListener('click', function(){
+  // open fanpage share (link fixed per yêu cầu)
+  const fan = 'https://facebook.com/phuongnhunghealthy';
+  window.open(fan, '_blank');
+});
+
+/* open zalo chat */
+document.getElementById('btnShareZalo').addEventListener('click', function(){
+  // open zalo link (mobile will open app)
+  window.open('https://zalo.me/0902032188', '_blank');
+});
+
+/* preview */
+document.getElementById('btnPreview').addEventListener('click', function(){
+  window.open('menu.html', '_blank');
+});
+
+/* on load */
+createGroupElements();
+syncCheckboxesWithSaved();
+updateSelectedFromCheckboxes();
+</script>
+</body>
+</html>
